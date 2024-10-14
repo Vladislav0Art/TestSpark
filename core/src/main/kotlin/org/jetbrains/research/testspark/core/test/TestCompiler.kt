@@ -11,6 +11,13 @@ data class TestCasesCompilationResult(
     val compilableTestCases: MutableSet<TestCaseGeneratedByLLM>,
 )
 
+data class ExecutionResult(
+    val exitCode: Int,
+    val executionMessage: String,
+) {
+    fun isSuccessful(): Boolean = exitCode == 0
+}
+
 /**
  * TestCompiler is a class that is responsible for compiling generated test cases using the proper javac.
  * It provides methods for compiling test cases and code files.
@@ -37,7 +44,7 @@ open class TestCompiler(
         val compilableTestCases: MutableSet<TestCaseGeneratedByLLM> = mutableSetOf()
 
         for (index in generatedTestCasesPaths.indices) {
-            val compilable = compileCode(generatedTestCasesPaths[index], buildPath).first
+            val compilable = compileCode(generatedTestCasesPaths[index], buildPath).isSuccessful()
             allTestCasesCompilable = allTestCasesCompilable && compilable
             if (compilable) {
                 compilableTestCases.add(testCases[index])
@@ -55,7 +62,7 @@ open class TestCompiler(
      * @return A pair containing a boolean value indicating whether the compilation was successful (true) or not (false),
      *         and a string message describing any error encountered during compilation.
      */
-    fun compileCode(path: String, projectBuildPath: String): Pair<Boolean, String> {
+    fun compileCode(path: String, projectBuildPath: String): ExecutionResult {
         // find the proper javac
         val javaCompile = File(javaHomeDirectoryPath).walk()
             .filter {
@@ -73,7 +80,7 @@ open class TestCompiler(
         println("javac found at '${javaCompile.absolutePath}'")
 
         // compile file
-        val errorMsg = CommandLineRunner.run(
+        val executionResult = CommandLineRunner.run(
             arrayListOf(
                 javaCompile.absolutePath,
                 "-cp",
@@ -82,13 +89,13 @@ open class TestCompiler(
             ),
         )
 
-        log.info { "Error message: '$errorMsg'" }
+        log.info { "Execution: exitCode=${executionResult.exitCode}, message: '${executionResult.exitCode}'" }
 
         // create .class file path
-        val classFilePath = path.replace(".java", ".class")
+        // val classFilePath = path.replace(".java", ".class")
 
         // check is .class file exists
-        return Pair(File(classFilePath).exists(), errorMsg)
+        return executionResult
     }
 
     /**

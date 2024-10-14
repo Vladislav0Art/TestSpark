@@ -1,6 +1,7 @@
 package org.jetbrains.research.testspark.core.utils
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.jetbrains.research.testspark.core.test.ExecutionResult
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
@@ -14,8 +15,8 @@ class CommandLineRunner {
          * @param cmd The command line arguments as an ArrayList of strings.
          * @return The output of the command line process as a string.
          */
-        fun run(cmd: ArrayList<String>): String {
-            var errorMessage = ""
+        fun run(cmd: ArrayList<String>): ExecutionResult {
+            var executionMsg = ""
 
             /**
              * Since Windows does not provide bash, use cmd or similar default command line interpreter
@@ -32,17 +33,16 @@ class CommandLineRunner {
                     .redirectErrorStream(true)
                     .start()
             }
-
             val reader = BufferedReader(InputStreamReader(process.inputStream))
+            val separator = System.lineSeparator()
             var line: String?
 
             while (reader.readLine().also { line = it } != null) {
-                errorMessage += line
+                executionMsg += "$line$separator"
             }
 
             process.waitFor()
-
-            return errorMessage
+            return ExecutionResult(process.exitValue(), executionMsg)
         }
     }
 }

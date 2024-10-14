@@ -87,6 +87,7 @@ class LLMWithFeedbackCycle(
          * Create files for LLM output and iterations.
          */
         val llmResponseFilepath = ProjectUnderTestArtifactsCollector.getOrCreateFileInOutputDirectory("llm-response.txt")
+        val promptsSentFilepath = ProjectUnderTestArtifactsCollector.getOrCreateFileInOutputDirectory("sent-prompts.txt")
         val iterationsJsonFilepath = ProjectUnderTestArtifactsCollector.initializeJsonFileWithIterations("iterations.json")
 
         ProjectUnderTestArtifactsCollector.appendToFile(
@@ -98,7 +99,10 @@ class LLMWithFeedbackCycle(
             requestsCount++
 
 
-            ProjectUnderTestArtifactsCollector.appendToFile("\n====================== Iteration #$requestsCount ======================\n", llmResponseFilepath)
+            ProjectUnderTestArtifactsCollector.appendToFile(
+                "\n====================== Iteration #$requestsCount ======================\n", llmResponseFilepath)
+            ProjectUnderTestArtifactsCollector.appendToFile(
+                "\n====================== Iteration #$requestsCount ======================\n", promptsSentFilepath)
 
 
             log.info { "Iteration #$requestsCount of feedback cycle" }
@@ -132,7 +136,12 @@ class LLMWithFeedbackCycle(
             val aiRawResponse = testsAssembler.getContent()
 
             ProjectUnderTestArtifactsCollector.appendToFile(aiRawResponse, llmResponseFilepath)
-            ProjectUnderTestArtifactsCollector.appendToFile("\n===================================================\n\n", llmResponseFilepath)
+            ProjectUnderTestArtifactsCollector.appendToFile(
+                "\n===================================================\n\n", llmResponseFilepath)
+
+            ProjectUnderTestArtifactsCollector.appendToFile(nextPromptMessage, promptsSentFilepath)
+            ProjectUnderTestArtifactsCollector.appendToFile(
+                "\n===================================================\n\n", promptsSentFilepath)
 
             ProjectUnderTestArtifactsCollector.appendIteration(
                 filepath = iterationsJsonFilepath,
@@ -251,6 +260,8 @@ class LLMWithFeedbackCycle(
             val testCasesCompilationResult = testCompiler.compileTestCases(generatedTestCasesPaths, buildPath, testCases)
             val testSuiteCompilationResult = testCompiler.compileCode(File(generatedTestSuitePath).absolutePath, buildPath)
 
+
+
             // saving the compilable test cases
             compilableTestCases.addAll(testCasesCompilationResult.compilableTestCases)
 
@@ -261,13 +272,13 @@ class LLMWithFeedbackCycle(
 
                 nextPromptMessage = """
                     I cannot compile the tests that you provided. The error is:
-                    
+
                     ```
-                    ${testSuiteCompilationResult.second}
+                    ${testSuiteCompilationResult.executionMessage}
                     ```
-                    
+
                     Fix this issue in the provided tests. Generate public classes and public methods.
-                    Response only a code with tests between ```, DO NOT provide any other text.    
+                    Response only a code with tests between ```, DO NOT provide any other text.
                 """.trimIndent()
 
                 log.info { nextPromptMessage }

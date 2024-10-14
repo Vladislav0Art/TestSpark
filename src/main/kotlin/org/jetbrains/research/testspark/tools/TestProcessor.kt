@@ -91,7 +91,7 @@ class TestProcessor(
 
         // run the test method with jacoco agent
         val junitRunnerLibraryPath = LibraryPathsProvider.getJUnitRunnerLibraryPath()
-        val testExecutionError = CommandLineRunner.run(
+        val testExecutionResult = CommandLineRunner.run(
             arrayListOf(
                 javaRunner.absolutePath,
                 "-javaagent:$jacocoAgentLibraryPath=destfile=$dataFileName.exec,append=false,includes=${projectContext.classFQN}",
@@ -102,7 +102,7 @@ class TestProcessor(
             ),
         )
 
-        log.info("Test execution error message: $testExecutionError")
+        log.info("Test execution: exitCode=${testExecutionResult.exitCode}, message: ${testExecutionResult.executionMessage}")
 
         // Prepare the command for generating the Jacoco report
         val command = mutableListOf(
@@ -134,7 +134,7 @@ class TestProcessor(
 
         CommandLineRunner.run(command as ArrayList<String>)
 
-        return testExecutionError
+        return if (testExecutionResult.isSuccessful()) "" else testExecutionResult.executionMessage
     }
 
     /**
@@ -171,8 +171,8 @@ class TestProcessor(
 
         // compilation checking
         val compilationResult = testCompiler.compileCode(generatedTestPath, buildPath)
-        if (!compilationResult.first) {
-            project.service<TestsExecutionResultService>().addFailedTest(testId, testCode, compilationResult.second)
+        if (!compilationResult.isSuccessful()) {
+            project.service<TestsExecutionResultService>().addFailedTest(testId, testCode, compilationResult.executionMessage)
         } else {
             val dataFileName = "$resultPath/jacoco-${fileName.split(".")[0]}"
 
