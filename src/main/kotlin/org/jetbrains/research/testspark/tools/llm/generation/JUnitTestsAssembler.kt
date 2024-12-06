@@ -60,7 +60,6 @@ class JUnitTestsAssembler(
         while (true) {
             if (ToolUtils.isProcessCanceled(indicator)) return
 
-            Thread.sleep(50L)
             var text = httpRequest.reader.readLine()
 
             if (text.isEmpty()) continue
