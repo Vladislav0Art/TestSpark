@@ -103,8 +103,10 @@ open class TestCompiler(
         val dependencyLibPath = libPaths.joinToString(separator.toString())
         val junitPath = junitLibPaths.joinToString(separator.toString())
 
-        val path = "$junitPath${separator}$dependencyLibPath${separator}$buildPath"
-        println("[TestCompiler]: the path is: $path")
+        val path = "$junitPath${separator}$dependencyLibPath${separator}$buildPath".let {
+            File(it).normalize().path
+        }
+        println("[TestCompiler]: The path is: '$path'")
 
         return path
     }
