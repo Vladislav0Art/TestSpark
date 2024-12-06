@@ -67,7 +67,7 @@ abstract class RequestManager(var token: String) {
         // save the full response in the chat history
         val response = testsAssembler.getContent()
 
-        log.info { "The full response: \n $response" }
+        log.info { "The full response:\n$response" }
         chatHistory.add(ChatAssistantMessage(response))
 
         // check if the response is empty
@@ -97,7 +97,7 @@ abstract class RequestManager(var token: String) {
     ): LLMResponse {
         val response = testsAssembler.getContent()
 
-        log.info { "The full response: \n $response" }
+        log.info { "The full response:\n$response" }
 
         // check if the response is empty
         if (response.isEmpty() || response.isBlank()) {

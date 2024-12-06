@@ -91,8 +91,11 @@ class LLMWithFeedbackCycle(
                 break
             }
 
-            if (isLastIteration(requestsCount) && compilableTestCases.isEmpty()) {
+            if (requestsCount > requestsCountThreshold && compilableTestCases.isEmpty()) {
                 executionResult = FeedbackCycleExecutionResult.NO_COMPILABLE_TEST_CASES_GENERATED
+                break
+            }
+            else if (requestsCount > requestsCountThreshold) {
                 break
             }
 
@@ -109,9 +112,10 @@ class LLMWithFeedbackCycle(
 
             when (response.errorCode) {
                 ResponseErrorCode.OK -> {
-                    log.info { "Test suite generated successfully: ${response.testSuite!!}" }
+                    log.info { "Test suite generated successfully:\n${response.testSuite!!}" }
                     // check that there are some test cases generated
                     if (response.testSuite!!.testCases.isEmpty()) {
+                        log.info { "Generated test suite is empty. Proceeding to the next iteration..." }
                         onWarningCallback?.invoke(WarningType.NO_TEST_CASES_GENERATED)
 
                         nextPromptMessage =
@@ -120,7 +124,10 @@ class LLMWithFeedbackCycle(
                     }
                 }
                 ResponseErrorCode.PROMPT_TOO_LONG -> {
+                    log.info { "Provided prompt exceeds context limit" }
+
                     if (promptSizeReductionStrategy.isReductionPossible()) {
+                        log.info { "Reduction of the prompt length is possible. Attempting with the reduced prompt..." }
                         nextPromptMessage = promptSizeReductionStrategy.reduceSizeAndGeneratePrompt()
                         /**
                          * Current attempt does not count as a failure since it was rejected due to the prompt size exceeding the threshold
@@ -133,13 +140,14 @@ class LLMWithFeedbackCycle(
                     }
                 }
                 ResponseErrorCode.EMPTY_LLM_RESPONSE -> {
+                    log.info { "LLM response is empty. Proceeding to the next iteration..." }
                     nextPromptMessage =
                         "You have provided an empty answer! Please, answer my previous question with the same formats"
                     continue
                 }
                 ResponseErrorCode.TEST_SUITE_PARSING_FAILURE -> {
+                    log.info { "Cannot parse a test suite from the LLM response. LLM response: '$response'. Proceeding to the next iteration..." }
                     onWarningCallback?.invoke(WarningType.TEST_SUITE_PARSING_FAILED)
-                    log.info { "Cannot parse a test suite from the LLM response. LLM response: '$response'" }
 
                     nextPromptMessage = "The provided code is not parsable. Please, generate the correct code"
                     continue
@@ -159,7 +167,8 @@ class LLMWithFeedbackCycle(
 
             if (isLastIteration(requestsCount)) {
                 generatedTestSuite.updateTestCases(compilableTestCases.toMutableList())
-            } else {
+            }
+            else {
                 for (testCaseIndex in generatedTestSuite.testCases.indices) {
                     val testCaseFilename = "${getClassWithTestCaseName(generatedTestSuite.testCases[testCaseIndex].name)}.java"
 
@@ -190,13 +199,13 @@ class LLMWithFeedbackCycle(
             }
             if (!(allFilesCreated && File(generatedTestSuitePath).exists())) {
                 // either some test case file or the test suite file was not created
+                log.info { "Couldn't save a test file: '$generatedTestSuitePath'" }
                 executionResult = FeedbackCycleExecutionResult.SAVING_TEST_FILES_ISSUE
                 break
             }
 
             // Get test cases
-            val testCases: MutableList<TestCaseGeneratedByLLM> =
-                if (!isLastIteration(requestsCount)) {
+            val testCases: MutableList<TestCaseGeneratedByLLM> = if (!isLastIteration(requestsCount)) {
                     generatedTestSuite.testCases
                 } else {
                     compilableTestCases.toMutableList()
@@ -212,7 +221,7 @@ class LLMWithFeedbackCycle(
             compilableTestCases.addAll(testCasesCompilationResult.compilableTestCases)
 
             if (!testCasesCompilationResult.allTestCasesCompilable && !isLastIteration(requestsCount)) {
-                log.info { "Non-compilable test suite: \n${testsPresenter.representTestSuite(generatedTestSuite!!)}" }
+                log.info { "Non-compilable test suite (Proceeding to the next iteration...):\n${testsPresenter.representTestSuite(generatedTestSuite!!)}" }
 
                 onWarningCallback?.invoke(WarningType.COMPILATION_ERROR_OCCURRED)
 
@@ -242,5 +251,5 @@ class LLMWithFeedbackCycle(
         )
     }
 
-    private fun isLastIteration(requestsCount: Int): Boolean = requestsCount > requestsCountThreshold
+    private fun isLastIteration(requestsCount: Int): Boolean = requestsCount == requestsCountThreshold
 }
