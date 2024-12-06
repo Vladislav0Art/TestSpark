@@ -89,6 +89,10 @@ class LLMWithFeedbackCycle(
         val llmResponseFilepath = ProjectUnderTestArtifactsCollector.getOrCreateFileInOutputDirectory("llm-response.txt")
         val iterationsJsonFilepath = ProjectUnderTestArtifactsCollector.initializeJsonFileWithIterations("iterations.json")
 
+        ProjectUnderTestArtifactsCollector.appendToFile(
+            "[IMPORTANT]: Max feedback cycle iterations: $requestsCountThreshold\n", llmResponseFilepath)
+        ProjectUnderTestArtifactsCollector.log("[IMPORTANT]: Max feedback cycle iterations: $requestsCountThreshold")
+
 
         while (!generatedTestsArePassing) {
             requestsCount++
