@@ -29,6 +29,7 @@ import org.jetbrains.research.testspark.services.PluginSettingsService
 import org.jetbrains.research.testspark.tools.TestProcessor
 import org.jetbrains.research.testspark.tools.ToolUtils
 import org.jetbrains.research.testspark.tools.llm.Llm
+import org.jetbrains.research.testspark.core.ProjectUnderTestArtifactsCollector
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -90,10 +91,25 @@ class TestSparkStarter : ApplicationStarter {
             exitProcess(1)
         }
 
+        /**
+         * Set output directory in order to save the produced prompts and LLM responses during test generation.
+         * **The solution of having a public static field is bad but fast.**
+         */
+        ProjectUnderTestArtifactsCollector.projectUnderTestOutputDirectory = output
+
+        ProjectUnderTestArtifactsCollector.log("Test generation requested for $projectPath")
+        println("Test generation requested for '$projectPath'")
+
+        ProjectUnderTestArtifactsCollector.log("classPath: '$classPath'")
+
+        ProjectUnderTestArtifactsCollector.log("Prompt is located under file '$promptTemplateFile'")
+
+
         ApplicationManager.getApplication().invokeAndWait {
             println("Detected project: $project")
             // Continue when the project is indexed
             println("Indexing project...")
+
             project.let {
                 DumbService.getInstance(it).runWhenSmart {
                     try {
@@ -111,6 +127,8 @@ class TestSparkStarter : ApplicationStarter {
                             exitProcess(1)
                         }
 
+                        ProjectUnderTestArtifactsCollector.log(
+                            "PsiClass '${targetPsiClass.qualifiedName}' is detected! Start the test generation process.")
                         println("PsiClass ${targetPsiClass.qualifiedName} is detected! Start the test generation process.")
 
                         // Get project SDK
@@ -131,6 +149,12 @@ class TestSparkStarter : ApplicationStarter {
                         }
                         project.service<PluginSettingsService>().state.buildPath = classPath
 
+                        val packageFilepath = classUnderTestName.split(".").dropLast(1).joinToString("/")
+                        val compilationOutputDirectory = File("$output/$packageFilepath").normalize().path.toString()
+
+                        println("==============================\npackageFilepath: $packageFilepath")
+                        println("==============================\ncompilationOutputDirectory: ${compilationOutputDirectory}\n==============================")
+
                         // Prepare Project Context
                         // First, get CUT Module
                         val cutModule = ProjectFileIndex.getInstance(project)
@@ -141,6 +165,7 @@ class TestSparkStarter : ApplicationStarter {
                             output,
                             targetPsiClass.qualifiedName,
                             cutModule,
+                            compilationOutputDirectory,
                         )
                         // Prepare the test generation data
                         val testGenerationData = TestGenerationData(
@@ -236,7 +261,9 @@ class TestSparkStarter : ApplicationStarter {
         projectSDKPath: Path,
     ) {
         val targetDirectory = "$out${File.separator}${packageList.joinToString(File.separator)}"
+
         println("Run tests in $targetDirectory")
+
         File(targetDirectory).walk().forEach {
             if (it.name.endsWith(".class")) {
                 println("Running test ${it.name}")

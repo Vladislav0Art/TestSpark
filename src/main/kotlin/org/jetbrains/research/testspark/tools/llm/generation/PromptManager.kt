@@ -25,6 +25,7 @@ import org.jetbrains.research.testspark.helpers.psi.PsiMethodWrapper
 import org.jetbrains.research.testspark.services.LLMSettingsService
 import org.jetbrains.research.testspark.settings.llm.LLMSettingsState
 import org.jetbrains.research.testspark.tools.llm.SettingsArguments
+import org.jetbrains.research.testspark.core.ProjectUnderTestArtifactsCollector
 import org.jetbrains.research.testspark.tools.llm.error.LLMErrorManager
 
 /**
@@ -65,11 +66,27 @@ class PromptManager(
                 val interestingPsiClasses =
                     psiHelper.getInterestingPsiClassesWithQualifiedNames(project, classesToTest, polyDepthReducing)
 
+                ProjectUnderTestArtifactsCollector.log("interestingPsiClasses: [\n${
+                    interestingPsiClasses.joinToString("\n") { "\t${it.qualifiedName}" }
+                }\n]")
+
                 val interestingClasses = interestingPsiClasses.map(this::createClassRepresentation).toList()
+
+                ProjectUnderTestArtifactsCollector.log("interestingClasses: [\n${
+                    interestingClasses.joinToString("\n") { "\t${it.qualifiedName}" }
+                }\n]")
+
                 val polymorphismRelations =
                     getPolymorphismRelationsWithQualifiedNames(project, interestingPsiClasses, cut)
                         .map(this::createClassRepresentation)
                         .toMap()
+
+                for (entry in polymorphismRelations.entries) {
+                    val baseClass = entry.key
+                    val subclasses = entry.value
+                    val subclassesStr = subclasses.joinToString("\n") { "$\t${it.qualifiedName}" }
+                    ProjectUnderTestArtifactsCollector.log("${baseClass.qualifiedName}: [\n${subclassesStr}\n]")
+                }
 
                 val context = PromptGenerationContext(
                     cut = createClassRepresentation(cut),

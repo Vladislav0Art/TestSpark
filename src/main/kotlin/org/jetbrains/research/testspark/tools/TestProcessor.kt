@@ -116,7 +116,9 @@ class TestProcessor(
 
         // for classpath containing cut
         command.add("--classfiles")
-        command.add(CompilerModuleExtension.getInstance(projectContext.cutModule!!)?.compilerOutputPath!!.path)
+        command.add(projectContext.compilationOutputDirectory!!)
+
+        // command.add(CompilerModuleExtension.getInstance(projectContext.cutModule!!)?.compilerOutputPath!!.path)
 
         // for each source folder
         sourceRoots.forEach { root ->

@@ -1,6 +1,7 @@
 package org.jetbrains.research.testspark.core.generation.llm
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.jetbrains.research.testspark.core.FeedbackCycleIteration
 import org.jetbrains.research.testspark.core.data.Report
 import org.jetbrains.research.testspark.core.data.TestCase
 import org.jetbrains.research.testspark.core.generation.llm.network.LLMResponse
@@ -16,6 +17,7 @@ import org.jetbrains.research.testspark.core.test.TestsPersistentStorage
 import org.jetbrains.research.testspark.core.test.TestsPresenter
 import org.jetbrains.research.testspark.core.test.data.TestCaseGeneratedByLLM
 import org.jetbrains.research.testspark.core.test.data.TestSuiteGeneratedByLLM
+import org.jetbrains.research.testspark.core.ProjectUnderTestArtifactsCollector
 import java.io.File
 
 enum class FeedbackCycleExecutionResult {
@@ -80,8 +82,20 @@ class LLMWithFeedbackCycle(
 
         var generatedTestSuite: TestSuiteGeneratedByLLM? = null
 
+
+        /**
+         * Create files for LLM output and iterations.
+         */
+        val llmResponseFilepath = ProjectUnderTestArtifactsCollector.getOrCreateFileInOutputDirectory("llm-response.txt")
+        val iterationsJsonFilepath = ProjectUnderTestArtifactsCollector.initializeJsonFileWithIterations("iterations.json")
+
+
         while (!generatedTestsArePassing) {
             requestsCount++
+
+
+            ProjectUnderTestArtifactsCollector.appendToFile("\n====================== Iteration #$requestsCount ======================\n", llmResponseFilepath)
+
 
             log.info { "Iteration #$requestsCount of feedback cycle" }
 
@@ -109,6 +123,22 @@ class LLMWithFeedbackCycle(
                 isUserFeedback = false,
                 errorMonitor,
             )
+
+
+            val aiRawResponse = testsAssembler.getContent()
+
+            ProjectUnderTestArtifactsCollector.appendToFile(aiRawResponse, llmResponseFilepath)
+            ProjectUnderTestArtifactsCollector.appendToFile("\n===================================================\n\n", llmResponseFilepath)
+
+            ProjectUnderTestArtifactsCollector.appendIteration(
+                filepath = iterationsJsonFilepath,
+                iteration = FeedbackCycleIteration(
+                    iteration = requestsCount,
+                    prompt = nextPromptMessage,
+                    response = aiRawResponse,
+                )
+            )
+
 
             when (response.errorCode) {
                 ResponseErrorCode.OK -> {
