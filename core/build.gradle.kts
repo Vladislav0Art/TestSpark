@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm")
+    kotlin("plugin.serialization") version "2.1.0"
     `maven-publish`
 }
 
@@ -18,6 +19,7 @@ dependencies {
     compileOnly(kotlin("stdlib"))
 
     implementation("io.github.oshai:kotlin-logging-jvm:6.0.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 }
 
 tasks.test {
