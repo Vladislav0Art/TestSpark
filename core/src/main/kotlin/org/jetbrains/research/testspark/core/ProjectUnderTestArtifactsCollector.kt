@@ -25,6 +25,30 @@ data class IterationsContainer(
     val iterations: MutableList<FeedbackCycleIteration> = mutableListOf()
 )
 
+@Serializable
+data class TestSuiteCompilationResult(
+    val exitCode: Int,
+    val compilationMessage: String,
+)
+
+@Serializable
+data class TestCasesCompilationResult(
+    val total: Int,
+    val compilable: Int,
+)
+
+@Serializable
+data class CompilationResult(
+    val iteration: Int,
+    val testSuite: TestSuiteCompilationResult,
+    val testCases: TestCasesCompilationResult,
+)
+
+@Serializable
+data class CompilationResultsContainer(
+    val iterations: MutableList<CompilationResult> = mutableListOf()
+)
+
 
 class ProjectUnderTestArtifactsCollector {
     companion object {
@@ -90,6 +114,36 @@ class ProjectUnderTestArtifactsCollector {
             // Write updated data back to the file
             filepath.writeText(
                 json.encodeToString(IterationsContainer.serializer(), container)
+            )
+        }
+
+
+        fun initializeJsonFileWithCompilationResults(filename: String): Path {
+            val filepath = getOrCreateFileInOutputDirectory(filename)
+
+            val emptyContainer = CompilationResultsContainer()
+            filepath.writeText(Json.encodeToString(emptyContainer))
+
+            return filepath
+        }
+
+        fun appendCompilationResult(filepath: Path, result: CompilationResult) {
+            val json = Json { prettyPrint = true }
+
+            // Read existing data
+            val container = if (Files.exists(filepath)) {
+                val content = filepath.readText()
+                Json.decodeFromString(CompilationResultsContainer.serializer(), content)
+            } else {
+                CompilationResultsContainer()
+            }
+
+            // Append new iteration
+            container.iterations.add(result)
+
+            // Write updated data back to the file
+            filepath.writeText(
+                json.encodeToString(CompilationResultsContainer.serializer(), container)
             )
         }
     }

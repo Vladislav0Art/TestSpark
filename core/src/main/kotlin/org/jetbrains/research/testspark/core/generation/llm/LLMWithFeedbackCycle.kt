@@ -1,7 +1,7 @@
 package org.jetbrains.research.testspark.core.generation.llm
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.jetbrains.research.testspark.core.FeedbackCycleIteration
+import org.jetbrains.research.testspark.core.*
 import org.jetbrains.research.testspark.core.data.Report
 import org.jetbrains.research.testspark.core.data.TestCase
 import org.jetbrains.research.testspark.core.generation.llm.network.LLMResponse
@@ -17,7 +17,6 @@ import org.jetbrains.research.testspark.core.test.TestsPersistentStorage
 import org.jetbrains.research.testspark.core.test.TestsPresenter
 import org.jetbrains.research.testspark.core.test.data.TestCaseGeneratedByLLM
 import org.jetbrains.research.testspark.core.test.data.TestSuiteGeneratedByLLM
-import org.jetbrains.research.testspark.core.ProjectUnderTestArtifactsCollector
 import java.io.File
 
 enum class FeedbackCycleExecutionResult {
@@ -88,7 +87,9 @@ class LLMWithFeedbackCycle(
          */
         val llmResponseFilepath = ProjectUnderTestArtifactsCollector.getOrCreateFileInOutputDirectory("llm-response.txt")
         val promptsSentFilepath = ProjectUnderTestArtifactsCollector.getOrCreateFileInOutputDirectory("sent-prompts.txt")
+
         val iterationsJsonFilepath = ProjectUnderTestArtifactsCollector.initializeJsonFileWithIterations("iterations.json")
+        val compilationResultsJsonFilepath = ProjectUnderTestArtifactsCollector.initializeJsonFileWithCompilationResults("compilations.json")
 
         ProjectUnderTestArtifactsCollector.appendToFile(
             "[IMPORTANT]: Max feedback cycle iterations: $requestsCountThreshold\n", llmResponseFilepath)
@@ -260,6 +261,21 @@ class LLMWithFeedbackCycle(
             val testCasesCompilationResult = testCompiler.compileTestCases(generatedTestCasesPaths, buildPath, testCases)
             val testSuiteCompilationResult = testCompiler.compileCode(File(generatedTestSuitePath).absolutePath, buildPath)
 
+            // writing JSON file
+            ProjectUnderTestArtifactsCollector.appendCompilationResult(
+                filepath = compilationResultsJsonFilepath,
+                result = CompilationResult(
+                    iteration = requestsCount,
+                    testSuite = TestSuiteCompilationResult(
+                        exitCode = testSuiteCompilationResult.exitCode,
+                        compilationMessage = testSuiteCompilationResult.executionMessage,
+                    ),
+                    testCases = TestCasesCompilationResult(
+                        total = generatedTestCasesPaths.size,
+                        compilable = testCasesCompilationResult.compilableTestCases.size,
+                    ),
+                )
+            )
 
 
             // saving the compilable test cases
