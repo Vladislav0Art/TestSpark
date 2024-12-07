@@ -33,6 +33,7 @@ import org.jetbrains.research.testspark.core.ProjectUnderTestArtifactsCollector
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.io.path.readText
 import kotlin.system.exitProcess
 
 /**
@@ -104,6 +105,11 @@ class TestSparkStarter : ApplicationStarter {
 
         ProjectUnderTestArtifactsCollector.log("Prompt is located under file '$promptTemplateFile'")
 
+        val promptTemplate = Paths.get(promptTemplateFile).readText()
+        ProjectUnderTestArtifactsCollector.log("Prompt template content:\n" +
+                "            '''\n" +
+                "            $promptTemplate\n" +
+                "            '''")
 
         ApplicationManager.getApplication().invokeAndWait {
             println("Detected project: $project")
