@@ -2,6 +2,7 @@ package org.jetbrains.research.testspark.tools.llm.generation.grazie
 
 import com.intellij.openapi.project.Project
 import org.jetbrains.research.testspark.bundles.llm.LLMMessagesBundle
+import org.jetbrains.research.testspark.core.ProjectUnderTestArtifactsCollector
 import org.jetbrains.research.testspark.core.data.ChatMessage
 import org.jetbrains.research.testspark.core.monitor.ErrorMonitor
 import org.jetbrains.research.testspark.core.progress.CustomProgressIndicator
@@ -21,11 +22,17 @@ class GrazieRequestManager(project: Project) : IJRequestManager(project) {
     ): SendResult {
         var sendResult = SendResult.OK
 
+        log.info { "Prompt length is: ${prompt.length}" }
+        ProjectUnderTestArtifactsCollector.log("Prompt length is: ${prompt.length}")
+
         try {
             val className = "org.jetbrains.research.grazie.Request"
             val request: GrazieRequest = Class.forName(className).getDeclaredConstructor().newInstance() as GrazieRequest
 
             val requestError = request.request(token, getMessages(), SettingsArguments(project).getModel(), testsAssembler)
+
+            log.info { "Request error: '${requestError}'" }
+            ProjectUnderTestArtifactsCollector.log("GrazieRequestManager: Request error: '${requestError}'")
 
             if (requestError.isNotEmpty()) {
                 with(requestError) {
@@ -36,6 +43,10 @@ class GrazieRequestManager(project: Project) : IJRequestManager(project) {
                                 project,
                                 errorMonitor = errorMonitor,
                             )
+
+                            log.info { "The provided token for LLM is not correct" }
+                            ProjectUnderTestArtifactsCollector.log("The provided token for Large Language Model is not correct.")
+
                             sendResult = SendResult.OTHER
                         }
 
@@ -44,6 +55,11 @@ class GrazieRequestManager(project: Project) : IJRequestManager(project) {
                                 LLMMessagesBundle.get("tooLongPrompt"),
                                 project,
                             )
+
+                            log.info { "The generated prompt is too long: Prompt length is ${prompt.length}" }
+                            ProjectUnderTestArtifactsCollector.log(
+                                "The generated prompt is too long: Prompt length is ${prompt.length}")
+
                             sendResult = SendResult.PROMPT_TOO_LONG
                         }
 
