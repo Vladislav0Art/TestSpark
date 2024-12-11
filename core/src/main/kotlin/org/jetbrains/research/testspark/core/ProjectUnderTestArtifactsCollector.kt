@@ -14,10 +14,12 @@ import kotlin.io.path.readText
 data class FeedbackCycleIteration(
     val iteration: Int,
     val prompt: String,
+    val promptLength: Int,
     /**
      * LLM response on the current iteration
      */
-    val response: String
+    val response: String,
+    val responseLength: Int,
 )
 
 @Serializable

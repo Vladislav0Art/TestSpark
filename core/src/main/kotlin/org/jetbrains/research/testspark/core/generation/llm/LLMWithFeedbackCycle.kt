@@ -149,7 +149,9 @@ class LLMWithFeedbackCycle(
                 iteration = FeedbackCycleIteration(
                     iteration = requestsCount,
                     prompt = nextPromptMessage,
+                    promptLength = nextPromptMessage.length,
                     response = aiRawResponse,
+                    responseLength = aiRawResponse.length,
                 )
             )
 
