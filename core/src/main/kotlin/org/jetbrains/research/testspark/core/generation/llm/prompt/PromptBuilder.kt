@@ -50,19 +50,22 @@ internal class PromptBuilder(private var prompt: String) {
         }
     }
 
-    fun insertCodeUnderTest(classFullText: String, classesToTest: List<ClassRepresentation>) = apply {
+    fun insertCodeUnderTest(classFullText: String, classesToTest: List<ClassRepresentation>, insertSubclasses: Boolean = true) = apply {
         if (isPromptValid(PromptKeyword.CODE, prompt)) {
             val keyword = "\$${PromptKeyword.CODE.text}"
             var fullText = "```\n${classFullText}\n```\n"
 
-            for (i in 2..classesToTest.size) {
-                val subClass = classesToTest[i - 2]
-                val superClass = classesToTest[i - 1]
+            if (insertSubclasses) {
+                for (i in 2..classesToTest.size) {
+                    val subClass = classesToTest[i - 2]
+                    val superClass = classesToTest[i - 1]
 
-                fullText += "${subClass.qualifiedName} extends ${superClass.qualifiedName}. " +
-                    "The source code of ${superClass.qualifiedName} is:\n```\n${superClass.fullText}\n" +
-                    "```\n"
+                    fullText += "${subClass.qualifiedName} extends ${superClass.qualifiedName}. " +
+                            "The source code of ${superClass.qualifiedName} is:\n```\n${superClass.fullText}\n" +
+                            "```\n"
+                }
             }
+
             prompt = prompt.replace(keyword, fullText, ignoreCase = false)
         } else {
             throw IllegalStateException("The prompt must contain ${PromptKeyword.CODE.text}")

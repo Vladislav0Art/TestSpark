@@ -22,7 +22,10 @@ class PromptGenerator(
             .insertName(context.cut.qualifiedName)
             .insertTestingPlatform(context.promptConfiguration.desiredTestingPlatform)
             .insertMockingFramework(context.promptConfiguration.desiredMockingFramework)
-            .insertCodeUnderTest(context.cut.fullText, context.classesToTest)
+            /**
+             * Do NOT insert subclasses due to prompt's content over-saturation.
+             */
+            .insertCodeUnderTest(context.cut.fullText, context.classesToTest, insertSubclasses = false)
             .insertMethodsSignatures(interestingClasses)
             .insertPolymorphismRelations(context.polymorphismRelations)
             .insertTestSample(testSamplesCode)
