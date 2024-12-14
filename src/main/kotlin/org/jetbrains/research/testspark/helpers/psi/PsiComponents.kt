@@ -79,6 +79,7 @@ interface PsiClassWrapper {
     fun getInterestingPsiClassesWithQualifiedNames(psiMethod: PsiMethodWrapper): MutableSet<PsiClassWrapper>
 
     fun declaration(): String
+    // fun constructorDeclarations(): List<String>
 }
 
 /**

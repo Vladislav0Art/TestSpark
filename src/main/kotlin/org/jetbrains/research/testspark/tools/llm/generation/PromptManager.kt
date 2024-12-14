@@ -185,9 +185,26 @@ class PromptManager(
     private fun PsiClassWrapper.buildMethodsDeclarations(): String {
         val wrapper = this
         val result = buildString {
-            appendLine("${wrapper.declaration()} {")
-            for (method in wrapper.allMethods) {
-                appendLine("\t${method.signature}")
+            appendLine(wrapper.declaration())
+            // add constructors
+//            val constructors = wrapper.constructorDeclarations()
+//            println("constructed constructors: $constructors")
+//            for (constructor in constructors) {
+//                if (!constructor.contains("private")) {
+//                    appendLine("\t$constructor { /* implementation */ }")
+//                    appendLine()
+//                }
+//            }
+
+            // add methods (constructors are already included!)
+            for ((index, method) in wrapper.methods.withIndex()) {
+                // do NOT add private methods/constructors
+                if (!method.signature.contains("private")) {
+                    appendLine("\t${method.signature.trim()} { /* implementation */ }")
+                    if (index < wrapper.methods.lastIndex) {
+                        appendLine()
+                    }
+                }
             }
             appendLine("}")
             trim()

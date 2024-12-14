@@ -10,11 +10,13 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.psi.util.PsiTypesUtil
 import org.jetbrains.kotlin.j2k.ast.declarationIdentifier
+import org.jetbrains.kotlin.j2k.isConstructor
 import org.jetbrains.research.testspark.core.data.ClassType
 import org.jetbrains.research.testspark.core.utils.importPattern
 import org.jetbrains.research.testspark.core.utils.packagePattern
 import org.jetbrains.research.testspark.helpers.psi.PsiClassWrapper
 import org.jetbrains.research.testspark.helpers.psi.PsiMethodWrapper
+import org.jetbrains.research.testspark.core.ProjectUnderTestArtifactsCollector
 
 class JavaPsiClassWrapper(private val psiClass: PsiClass) : PsiClassWrapper {
     override val name: String get() = psiClass.name ?: ""
@@ -109,6 +111,39 @@ class JavaPsiClassWrapper(private val psiClass: PsiClass) : PsiClassWrapper {
     }
 
     override fun declaration(): String {
-        return psiClass.declarationIdentifier().toString()
+        val wrapper = this
+        var fullText = psiClass.text.trim()
+
+        // remove doc comment
+        psiClass.docComment?.let {
+            ProjectUnderTestArtifactsCollector.log("Removing doc comment to construct declaration...")
+            fullText = fullText.removePrefix(it.text)
+        }
+
+        val declaration = fullText.split("\n").firstOrNull { it.contains(wrapper.name) }
+            ?: fullText.split("\n").firstOrNull()
+            ?: throw IllegalStateException("""
+Unable to extract declaration of the PSI class ${wrapper.name}.
+The full definition:
+${psiClass.text}
+            """.trimIndent())
+
+        ProjectUnderTestArtifactsCollector.log("Constructed declaration: `$declaration`")
+        return declaration
     }
+
+    /*override fun constructorDeclarations(): List<String> {
+        val constructors = mutableListOf<String>()
+
+        println("All constructors: ${psiClass.constructors.size}")
+
+        for (constructor in psiClass.constructors) {
+            if (constructor.isConstructor && constructor.isPhysical && constructor.isValid) {
+                val declaration = constructor.text.split("\n").first().trim().removeSuffix("{")
+                constructors.add(declaration)
+            }
+        }
+
+        return constructors
+    }*/
 }

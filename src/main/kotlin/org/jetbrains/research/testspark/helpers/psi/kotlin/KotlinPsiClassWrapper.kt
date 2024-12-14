@@ -131,4 +131,8 @@ class KotlinPsiClassWrapper(private val psiClass: KtClassOrObject) : PsiClassWra
     override fun declaration(): String {
         TODO("Not yet implemented")
     }
+
+    /*override fun constructorDeclarations(): List<String> {
+        TODO("Not yet implemented")
+    }*/
 }
