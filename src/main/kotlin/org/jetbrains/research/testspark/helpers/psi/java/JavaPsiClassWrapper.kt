@@ -9,6 +9,7 @@ import com.intellij.psi.PsiModifier
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.psi.util.PsiTypesUtil
+import org.jetbrains.kotlin.j2k.ast.declarationIdentifier
 import org.jetbrains.research.testspark.core.data.ClassType
 import org.jetbrains.research.testspark.core.utils.importPattern
 import org.jetbrains.research.testspark.core.utils.packagePattern
@@ -105,5 +106,9 @@ class JavaPsiClassWrapper(private val psiClass: PsiClass) : PsiClassWrapper {
      */
     fun isTestableClass(): Boolean {
         return !psiClass.isEnum && psiClass !is PsiAnonymousClass
+    }
+
+    override fun declaration(): String {
+        return psiClass.declarationIdentifier().toString()
     }
 }

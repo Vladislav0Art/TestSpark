@@ -2,7 +2,9 @@ package org.jetbrains.research.testspark.core.generation.llm.prompt
 
 enum class PromptKeyword(val text: String, val description: String, val mandatory: Boolean) {
     NAME("NAME", "The name of the code under test (Class name, method name, line number)", true),
-    CODE("CODE", "The code under test (Class, method, or line)", true),
+    CODE("CODE", "The code under test (Class, method, or line)", false),
+    METHOD_DECLARATIONS("METHOD_DECLARATIONS",
+        "The code under test with methods declarations instead of the full implementation", false),
     LANGUAGE("LANGUAGE", "Programming language of the project under test (only Java supported at this point)", true),
     TESTING_PLATFORM(
         "TESTING_PLATFORM",

@@ -77,6 +77,8 @@ interface PsiClassWrapper {
      * @return A mutable set of interesting PSI classes.
      */
     fun getInterestingPsiClassesWithQualifiedNames(psiMethod: PsiMethodWrapper): MutableSet<PsiClassWrapper>
+
+    fun declaration(): String
 }
 
 /**

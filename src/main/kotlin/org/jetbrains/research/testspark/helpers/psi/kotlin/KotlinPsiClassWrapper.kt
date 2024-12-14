@@ -127,4 +127,8 @@ class KotlinPsiClassWrapper(private val psiClass: KtClassOrObject) : PsiClassWra
         interestingPsiClasses.add(this)
         return interestingPsiClasses
     }
+
+    override fun declaration(): String {
+        TODO("Not yet implemented")
+    }
 }

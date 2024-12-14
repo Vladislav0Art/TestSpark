@@ -167,6 +167,7 @@ class PromptManager(
         return ClassRepresentation(
             psiClass.qualifiedName,
             psiClass.fullText,
+            psiClass.buildMethodsDeclarations(),
             psiClass.allMethods.map(this::createMethodRepresentation).toList().filterNotNull(),
             psiClass.classType,
         )
@@ -179,6 +180,19 @@ class PromptManager(
         val value = entry.value.map(this::createClassRepresentation)
 
         return key to value // mapOf(key to value).entries.first()
+    }
+
+    private fun PsiClassWrapper.buildMethodsDeclarations(): String {
+        val wrapper = this
+        val result = buildString {
+            appendLine("${wrapper.declaration()} {")
+            for (method in wrapper.allMethods) {
+                appendLine("\t${method.signature}")
+            }
+            appendLine("}")
+            trim()
+        }
+        return result
     }
 
     fun isPromptSizeReductionPossible(testGenerationData: TestGenerationData): Boolean {

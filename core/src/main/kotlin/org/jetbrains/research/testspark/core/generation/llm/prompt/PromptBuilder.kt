@@ -14,6 +14,9 @@ internal class PromptBuilder(private var prompt: String) {
         return (prompt.contains(keywordText) || !isMandatory)
     }
 
+    private fun hasKeyword(keyword: PromptKeyword, prompt: String): Boolean
+        = prompt.contains(keyword.text)
+
     fun insertLanguage(language: String) = apply {
         if (isPromptValid(PromptKeyword.LANGUAGE, prompt)) {
             val keyword = "\$${PromptKeyword.LANGUAGE.text}"
@@ -50,26 +53,39 @@ internal class PromptBuilder(private var prompt: String) {
         }
     }
 
-    fun insertCodeUnderTest(classFullText: String, classesToTest: List<ClassRepresentation>, insertSubclasses: Boolean = true) = apply {
-        if (isPromptValid(PromptKeyword.CODE, prompt)) {
-            val keyword = "\$${PromptKeyword.CODE.text}"
-            var fullText = "```\n${classFullText}\n```\n"
+    fun insertCodeUnderTest(text: String, classesToTest: List<ClassRepresentation>) = apply {
+        TODO("not implemented")
+    }
 
-            if (insertSubclasses) {
-                for (i in 2..classesToTest.size) {
-                    val subClass = classesToTest[i - 2]
-                    val superClass = classesToTest[i - 1]
-
-                    fullText += "${subClass.qualifiedName} extends ${superClass.qualifiedName}. " +
-                            "The source code of ${superClass.qualifiedName} is:\n```\n${superClass.fullText}\n" +
-                            "```\n"
-                }
+    fun insertCodeUnderTest(cut: ClassRepresentation, classesToTest: List<ClassRepresentation>, insertSubclasses: Boolean = true) = apply {
+        val (keyword, code) = run {
+            if (hasKeyword(PromptKeyword.CODE, prompt)) {
+                (PromptKeyword.CODE to cut.fullText)
             }
-
-            prompt = prompt.replace(keyword, fullText, ignoreCase = false)
-        } else {
-            throw IllegalStateException("The prompt must contain ${PromptKeyword.CODE.text}")
+            else if (hasKeyword(PromptKeyword.METHOD_DECLARATIONS, prompt)) {
+                (PromptKeyword.METHOD_DECLARATIONS to cut.methodsDeclaration)
+            }
+            else {
+                throw IllegalStateException("The prompt must contain ${PromptKeyword.CODE.text} or ${PromptKeyword.METHOD_DECLARATIONS.text}")
+            }
         }
+
+        // buildMethodsDeclarations
+        val keywordText = "\$${keyword.text}"
+        var fullText = "```\n${code}\n```\n"
+
+        if (insertSubclasses) {
+            for (i in 2..classesToTest.size) {
+                val subClass = classesToTest[i - 2]
+                val superClass = classesToTest[i - 1]
+
+                fullText += "${subClass.qualifiedName} extends ${superClass.qualifiedName}. " +
+                        "The source code of ${superClass.qualifiedName} is:\n```\n${superClass.fullText}\n" +
+                        "```\n"
+            }
+        }
+
+        prompt = prompt.replace(keywordText, fullText, ignoreCase = false)
     }
 
     fun insertMethodsSignatures(interestingClasses: List<ClassRepresentation>) = apply {

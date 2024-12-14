@@ -25,7 +25,7 @@ class PromptGenerator(
             /**
              * Do NOT insert subclasses due to prompt's content over-saturation.
              */
-            .insertCodeUnderTest(context.cut.fullText, context.classesToTest, insertSubclasses = false)
+            .insertCodeUnderTest(context.cut, context.classesToTest, insertSubclasses = false)
             .insertMethodsSignatures(interestingClasses)
             .insertPolymorphismRelations(context.polymorphismRelations)
             .insertTestSample(testSamplesCode)
