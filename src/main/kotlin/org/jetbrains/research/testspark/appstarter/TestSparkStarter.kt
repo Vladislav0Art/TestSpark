@@ -98,6 +98,8 @@ class TestSparkStarter : ApplicationStarter {
          */
         ProjectUnderTestArtifactsCollector.projectUnderTestOutputDirectory = output
 
+        ProjectUnderTestArtifactsCollector.log("Selected model: $model")
+
         ProjectUnderTestArtifactsCollector.log("Test generation requested for $projectPath")
         println("Test generation requested for '$projectPath'")
 
