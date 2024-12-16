@@ -89,7 +89,7 @@ open class TestCompiler(
             ),
         )
 
-        log.info { "Execution: exitCode=${executionResult.exitCode}, message: '${executionResult.exitCode}'" }
+        log.info { "Execution: exitCode=${executionResult.exitCode}, message: '${executionResult.executionMessage}'" }
 
         // create .class file path
         // val classFilePath = path.replace(".java", ".class")
