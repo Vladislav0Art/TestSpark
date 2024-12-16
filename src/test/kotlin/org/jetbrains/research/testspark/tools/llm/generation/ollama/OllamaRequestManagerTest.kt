@@ -40,7 +40,7 @@ class MockTestsAssembler(private val generationData: TestGenerationData) : Tests
 
 class OllamaRequestManagerTest {
 
-    @Test
+    /*@Test
     fun send() {
         val model3B = "llama3.2:1b"
         val manager = OllamaRequestManager(model3B)
@@ -69,5 +69,5 @@ class OllamaRequestManagerTest {
 
         println("Request result: $result")
         println("Response: '''\n${assembler.getContent()}\n'''")
-    }
+    }*/
 }

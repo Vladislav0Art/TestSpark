@@ -7,20 +7,17 @@ import com.intellij.util.io.HttpRequests
 import com.intellij.util.io.HttpRequests.HttpStatusException
 import org.jetbrains.research.testspark.bundles.llm.LLMMessagesBundle
 import org.jetbrains.research.testspark.core.data.ChatMessage
-import org.jetbrains.research.testspark.core.generation.llm.network.RequestManager
 import org.jetbrains.research.testspark.core.monitor.ErrorMonitor
 import org.jetbrains.research.testspark.core.progress.CustomProgressIndicator
 import org.jetbrains.research.testspark.core.test.TestsAssembler
 import org.jetbrains.research.testspark.tools.llm.error.LLMErrorManager
 import org.jetbrains.research.testspark.tools.llm.generation.IJRequestManager
-import org.jetbrains.research.testspark.tools.llm.generation.JUnitTestsAssembler
 import java.net.HttpURLConnection
 import com.google.gson.Gson
 import com.google.gson.JsonParser
-import org.jetbrains.research.testspark.tools.llm.generation.openai.OpenAIChoice
 
 
-class OllamaRequestManager(private val model: String, project: Project? = null) : RequestManager(token = "") {
+class OllamaRequestManager(private val model: String, project: Project) : IJRequestManager(project) {
     private val url = "http://localhost:11434/api/chat"
     private val llmErrorManager = LLMErrorManager()
     private val supportedModels = listOf("llama3.2", "llama3.2:1b")
@@ -66,17 +63,10 @@ class OllamaRequestManager(private val model: String, project: Project? = null) 
                 when (val responseCode = (it.connection as HttpURLConnection).responseCode) {
                     HttpURLConnection.HTTP_OK -> {
                         val response = it.readString()
-                        println("response: ${response}")
-
                         val assistantMessage = parseMessage(response)
-                        println("assistantMessage: $assistantMessage")
                         testsAssembler.consume(assistantMessage.content)
                     }
-                    else -> {
-                        println(it)
-                        println(responseCode)
-                    }
-                    /*HttpURLConnection.HTTP_INTERNAL_ERROR -> {
+                    HttpURLConnection.HTTP_INTERNAL_ERROR -> {
                         llmErrorManager.errorProcess(
                             LLMMessagesBundle.get("serverProblems"),
                             project,
@@ -106,7 +96,7 @@ class OllamaRequestManager(private val model: String, project: Project? = null) 
                             errorMonitor,
                         )
                         sendResult = SendResult.OTHER
-                    }*/
+                    }
                 }
             }
         } catch (e: HttpStatusException) {
