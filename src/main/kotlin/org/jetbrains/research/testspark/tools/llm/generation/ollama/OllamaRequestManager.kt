@@ -15,12 +15,18 @@ import org.jetbrains.research.testspark.tools.llm.generation.IJRequestManager
 import java.net.HttpURLConnection
 import com.google.gson.Gson
 import com.google.gson.JsonParser
+import org.jetbrains.research.testspark.tools.llm.SettingsArguments
 
 
-class OllamaRequestManager(private val model: String, project: Project) : IJRequestManager(project) {
+class OllamaRequestManager(project: Project) : IJRequestManager(project) {
     private val url = "http://localhost:11434/api/chat"
     private val llmErrorManager = LLMErrorManager()
-    private val supportedModels = listOf("llama3.2", "llama3.2:1b")
+
+    companion object {
+        val supportedModels = listOf("llama3.2", "llama3.2:1b")
+    }
+
+    private val model = SettingsArguments(project).getModel()
 
     init {
         if (model !in supportedModels) {

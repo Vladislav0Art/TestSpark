@@ -30,6 +30,7 @@ import org.jetbrains.research.testspark.tools.TestProcessor
 import org.jetbrains.research.testspark.tools.ToolUtils
 import org.jetbrains.research.testspark.tools.llm.Llm
 import org.jetbrains.research.testspark.core.ProjectUnderTestArtifactsCollector
+import org.jetbrains.research.testspark.tools.llm.generation.ollama.OllamaRequestManager
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -143,7 +144,14 @@ class TestSparkStarter : ApplicationStarter {
                         val projectSDKPath = getProjectSdkPath(project)
                         // update settings
                         val settingsState = project.getService(LLMSettingsService::class.java).state
-                        settingsState.currentLLMPlatformName = LLMDefaultsBundle.get("grazieName")
+                        settingsState.currentLLMPlatformName = if (model in OllamaRequestManager.supportedModels) {
+                            LLMDefaultsBundle.get("ollamaName")
+                        }
+                        else {
+                            LLMDefaultsBundle.get("grazieName")
+                        }
+                        ProjectUnderTestArtifactsCollector.log("Selected LLM Platform: ${settingsState.currentLLMPlatformName}")
+
                         settingsState.grazieToken = token
                         settingsState.grazieModel = model
                         settingsState.classPrompts =

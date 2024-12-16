@@ -13,6 +13,7 @@ data class LLMSettingsState(
     var openAIToken: String = DefaultLLMSettingsState.openAIToken,
     var openAIModel: String = DefaultLLMSettingsState.openAIModel,
     var grazieName: String = DefaultLLMSettingsState.grazieName,
+    var ollamaName: String = DefaultLLMSettingsState.
     var grazieToken: String = DefaultLLMSettingsState.grazieToken,
     var grazieModel: String = DefaultLLMSettingsState.grazieModel,
     var currentLLMPlatformName: String = DefaultLLMSettingsState.currentLLMPlatformName,
@@ -43,6 +44,7 @@ data class LLMSettingsState(
         val openAIToken: String = LLMDefaultsBundle.get("openAIToken")
         val openAIModel: String = LLMDefaultsBundle.get("openAIModel")
         val grazieName: String = LLMDefaultsBundle.get("grazieName")
+        val ollamaName: String = LLMDefaultsBundle.get("ollamaName")
         val grazieToken: String = LLMDefaultsBundle.get("grazieToken")
         val grazieModel: String = LLMDefaultsBundle.get("grazieModel")
         var currentLLMPlatformName: String = LLMDefaultsBundle.get("openAIName")
