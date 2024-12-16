@@ -13,7 +13,7 @@ data class LLMSettingsState(
     var openAIToken: String = DefaultLLMSettingsState.openAIToken,
     var openAIModel: String = DefaultLLMSettingsState.openAIModel,
     var grazieName: String = DefaultLLMSettingsState.grazieName,
-    var ollamaName: String = DefaultLLMSettingsState.
+    var ollamaName: String = DefaultLLMSettingsState.ollamaName,
     var grazieToken: String = DefaultLLMSettingsState.grazieToken,
     var grazieModel: String = DefaultLLMSettingsState.grazieModel,
     var currentLLMPlatformName: String = DefaultLLMSettingsState.currentLLMPlatformName,
