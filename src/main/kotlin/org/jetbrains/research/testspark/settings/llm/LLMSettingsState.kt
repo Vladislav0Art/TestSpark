@@ -16,6 +16,7 @@ data class LLMSettingsState(
     var ollamaName: String = DefaultLLMSettingsState.ollamaName,
     var grazieToken: String = DefaultLLMSettingsState.grazieToken,
     var grazieModel: String = DefaultLLMSettingsState.grazieModel,
+    var ollamaModel: String = DefaultLLMSettingsState.ollamaModel,
     var currentLLMPlatformName: String = DefaultLLMSettingsState.currentLLMPlatformName,
     var maxLLMRequest: Int = DefaultLLMSettingsState.maxLLMRequest,
     var maxInputParamsDepth: Int = DefaultLLMSettingsState.maxInputParamsDepth,
@@ -47,6 +48,7 @@ data class LLMSettingsState(
         val ollamaName: String = LLMDefaultsBundle.get("ollamaName")
         val grazieToken: String = LLMDefaultsBundle.get("grazieToken")
         val grazieModel: String = LLMDefaultsBundle.get("grazieModel")
+        val ollamaModel: String = LLMDefaultsBundle.get("ollamaModel")
         var currentLLMPlatformName: String = LLMDefaultsBundle.get("openAIName")
         val maxLLMRequest: Int = LLMDefaultsBundle.get("maxLLMRequest").toInt()
         val maxInputParamsDepth: Int = LLMDefaultsBundle.get("maxInputParamsDepth").toInt()

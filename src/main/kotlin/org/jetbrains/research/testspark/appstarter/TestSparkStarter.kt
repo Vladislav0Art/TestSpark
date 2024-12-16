@@ -144,16 +144,19 @@ class TestSparkStarter : ApplicationStarter {
                         val projectSDKPath = getProjectSdkPath(project)
                         // update settings
                         val settingsState = project.getService(LLMSettingsService::class.java).state
-                        settingsState.currentLLMPlatformName = if (model in OllamaRequestManager.supportedModels) {
-                            LLMDefaultsBundle.get("ollamaName")
+
+                        if (model in OllamaRequestManager.supportedModels) {
+                            settingsState.currentLLMPlatformName = LLMDefaultsBundle.get("ollamaName")
+                            settingsState.ollamaModel = model
                         }
                         else {
-                            LLMDefaultsBundle.get("grazieName")
+                            // Use Grazie
+                            settingsState.currentLLMPlatformName = LLMDefaultsBundle.get("grazieName")
+                            settingsState.grazieToken = token
+                            settingsState.grazieModel = model
                         }
                         ProjectUnderTestArtifactsCollector.log("Selected LLM Platform: ${settingsState.currentLLMPlatformName}")
 
-                        settingsState.grazieToken = token
-                        settingsState.grazieModel = model
                         settingsState.classPrompts =
                             JsonEncoding.encode(mutableListOf(File(promptTemplateFile).readText()))
                         settingsState.junitVersion = when (jUnitVersion.filter { it.isDigit() }) {

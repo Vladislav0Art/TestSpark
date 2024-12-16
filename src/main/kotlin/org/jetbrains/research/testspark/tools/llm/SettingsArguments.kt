@@ -57,6 +57,7 @@ class SettingsArguments(private val project: Project) {
     fun getToken(): String = when (currentLLMPlatformName()) {
         llmSettingsState.openAIName -> llmSettingsState.openAIToken
         llmSettingsState.grazieName -> llmSettingsState.grazieToken
+        llmSettingsState.ollamaName -> "No token needed"
         else -> ""
     }
 
@@ -68,6 +69,7 @@ class SettingsArguments(private val project: Project) {
     fun getModel(): String = when (currentLLMPlatformName()) {
         llmSettingsState.openAIName -> llmSettingsState.openAIModel
         llmSettingsState.grazieName -> llmSettingsState.grazieModel
+        llmSettingsState.ollamaName -> llmSettingsState.ollamaModel
         else -> ""
     }
 }
