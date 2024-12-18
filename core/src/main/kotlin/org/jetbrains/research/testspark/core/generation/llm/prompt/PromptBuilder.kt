@@ -2,6 +2,7 @@ package org.jetbrains.research.testspark.core.generation.llm.prompt
 
 import org.jetbrains.research.testspark.core.data.ClassType
 import org.jetbrains.research.testspark.core.generation.llm.prompt.configuration.ClassRepresentation
+import org.jetbrains.research.testspark.core.ProjectUnderTestArtifactsCollector
 
 internal class PromptBuilder(private var prompt: String) {
     private fun isPromptValid(
@@ -123,6 +124,8 @@ internal class PromptBuilder(private var prompt: String) {
     fun insertPolymorphismRelations(
         polymorphismRelations: Map<ClassRepresentation, List<ClassRepresentation>>,
     ) = apply {
+        ProjectUnderTestArtifactsCollector.log("Inserting ${polymorphismRelations.size} polymorphic relations...")
+
         val keyword = "\$${PromptKeyword.POLYMORPHISM.text}"
         if (isPromptValid(PromptKeyword.POLYMORPHISM, prompt)) {
             var fullText = ""
