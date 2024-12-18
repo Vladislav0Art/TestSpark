@@ -7,6 +7,7 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiSubstitutor
 import com.intellij.psi.PsiType
 import com.intellij.util.containers.stream
+import org.jetbrains.research.testspark.core.ProjectUnderTestArtifactsCollector
 import org.jetbrains.research.testspark.helpers.psi.PsiClassWrapper
 import org.jetbrains.research.testspark.helpers.psi.PsiMethodWrapper
 import java.util.stream.Collectors
@@ -38,7 +39,20 @@ class JavaPsiMethodWrapper(private val psiMethod: PsiMethod) : PsiMethodWrapper 
         get() {
             val bodyStart = psiMethod.body?.startOffsetInParent ?: psiMethod.textLength
             val text = psiMethod.text ?: return ""
-            return text.substring(0, bodyStart).replace("\\n", "").trim()
+
+            var sig = text.substring(0, bodyStart).replace("\\n", "").trim()
+
+            val comment = psiMethod.docComment?.text
+            if (comment != null) {
+                ProjectUnderTestArtifactsCollector.log("Removing doc comment to construct signature of method `$name()`...")
+                if (sig.startsWith(comment)) {
+                    sig = sig.removePrefix(comment)
+                }
+            }
+
+            ProjectUnderTestArtifactsCollector.log("Constructed signature of method `$name()`: `$sig`")
+
+            return sig
         }
 
     val parameterList = psiMethod.parameterList
