@@ -199,7 +199,8 @@ class PromptManager(
             // add methods (constructors are already included!)
             for ((index, method) in wrapper.methods.withIndex()) {
                 // do NOT add private methods/constructors
-                if (!method.signature.contains("private")) {
+                val signature = method.signature
+                if (signature.isNotBlank() && !signature.contains("private")) {
                     appendLine("\t${method.signature.trim()} { /* implementation */ }")
                     if (index < wrapper.methods.lastIndex) {
                         appendLine()

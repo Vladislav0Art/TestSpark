@@ -37,7 +37,8 @@ class JavaPsiMethodWrapper(private val psiMethod: PsiMethod) : PsiMethodWrapper 
     override val signature: String
         get() {
             val bodyStart = psiMethod.body?.startOffsetInParent ?: psiMethod.textLength
-            return psiMethod.text.substring(0, bodyStart).replace("\\n", "").trim()
+            val text = psiMethod.text ?: return ""
+            return text.substring(0, bodyStart).replace("\\n", "").trim()
         }
 
     val parameterList = psiMethod.parameterList
