@@ -56,7 +56,7 @@ class OllamaRequestManager(project: Project) : IJRequestManager(project) {
             model = model,
             messages = messages,
             stream = false,
-            options = OllamaOptions(temperature = 0.0)
+            options = OllamaOptions(temperature = 0.8)
         )
 
         var sendResult = SendResult.OK
