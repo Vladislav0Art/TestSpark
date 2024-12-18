@@ -199,7 +199,16 @@ class LLMWithFeedbackCycle(
                 }
             }
 
-            generatedTestSuite = response.testSuite
+            // extend set of imports with the old ones
+            // (required not to lose compilation of the previous test cases)
+            val previousImports = generatedTestSuite?.imports ?: emptySet()
+
+            generatedTestSuite = response.testSuite.run {
+                val extendedImports = this.imports.toMutableSet().apply {
+                    addAll(previousImports)
+                }
+                this.copy(imports = extendedImports)
+            }
 
             // Process stopped checking
             if (indicator.isCanceled()) {
