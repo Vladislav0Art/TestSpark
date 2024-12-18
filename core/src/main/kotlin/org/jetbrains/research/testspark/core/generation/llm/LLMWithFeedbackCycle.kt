@@ -99,7 +99,6 @@ class LLMWithFeedbackCycle(
         while (!generatedTestsArePassing) {
             requestsCount++
 
-
             ProjectUnderTestArtifactsCollector.appendToFile(
                 "\n====================== Iteration #$requestsCount ======================\n", llmResponseFilepath)
             ProjectUnderTestArtifactsCollector.appendToFile(
@@ -211,7 +210,7 @@ class LLMWithFeedbackCycle(
             // Save the generated TestSuite into a temp file
             val generatedTestCasesPaths: MutableList<String> = mutableListOf()
 
-            if (isLastIteration(requestsCount)) {
+            if (isLastIteration(requestsCount) && requestsCountThreshold > 1) {
                 generatedTestSuite.updateTestCases(compilableTestCases.toMutableList())
             }
             else {
@@ -251,7 +250,8 @@ class LLMWithFeedbackCycle(
             }
 
             // Get test cases
-            val testCases: MutableList<TestCaseGeneratedByLLM> = if (!isLastIteration(requestsCount)) {
+            val testCases: MutableList<TestCaseGeneratedByLLM> =
+                if (!isLastIteration(requestsCount) || requestsCountThreshold <= 1) {
                     generatedTestSuite.testCases
                 } else {
                     compilableTestCases.toMutableList()
@@ -289,14 +289,14 @@ class LLMWithFeedbackCycle(
                 onWarningCallback?.invoke(WarningType.COMPILATION_ERROR_OCCURRED)
 
                 nextPromptMessage = """
-                    I cannot compile the tests that you provided. The error is:
+I cannot compile the tests that you provided. The error is:
 
-                    ```
-                    ${testSuiteCompilationResult.executionMessage}
-                    ```
+```
+${testSuiteCompilationResult.executionMessage}
+```
 
-                    Fix this issue in the provided tests. Generate public classes and public methods.
-                    Response only a code with tests between ```, DO NOT provide any other text.
+Fix this issue in the provided tests. Generate public classes and public methods.
+Response only a code with tests between ```, DO NOT provide any other text.
                 """.trimIndent()
 
                 log.info { nextPromptMessage }
@@ -311,6 +311,10 @@ class LLMWithFeedbackCycle(
                 report.testCaseList[index] = TestCase(index, testCases[index].name, testCases[index].toString(), setOf())
             }
         }
+
+        /*if (requestsCountThreshold <= 1) {
+            generatedTestSuite?.updateTestCases(compilableTestCases.toMutableList())
+        }*/
 
         // test suite must not be provided upon failed execution
         if (executionResult != FeedbackCycleExecutionResult.OK) {
