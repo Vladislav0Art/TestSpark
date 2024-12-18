@@ -72,7 +72,13 @@ class TestSparkStarter : ApplicationStarter {
         // Run coverage
         val runCoverage = args[10].toBoolean()
 
-        println("Test generation requested for $projectPath")
+        /**
+         * Set output directory in order to save the produced prompts and LLM responses during test generation.
+         * **The solution of having a public static field is bad but fast.**
+         */
+        ProjectUnderTestArtifactsCollector.projectUnderTestOutputDirectory = output
+
+//        println("Test generation requested for $projectPath")
         ProjectUnderTestArtifactsCollector.log("Test generation requested for $projectPath")
 
         // remove the `.idea` folder in the $projectPath if exists
@@ -81,6 +87,9 @@ class TestSparkStarter : ApplicationStarter {
         if (ideaFolder.exists()) {
             ideaFolder.deleteRecursively()
         }
+
+        ProjectUnderTestArtifactsCollector.log("Trying to resolve project '${projectPath}'...")
+//        println("Trying to resolve project '${projectPath}'...")
 
         // open and resolve the project
         val project = try {
@@ -94,16 +103,10 @@ class TestSparkStarter : ApplicationStarter {
             exitProcess(1)
         }
 
-        /**
-         * Set output directory in order to save the produced prompts and LLM responses during test generation.
-         * **The solution of having a public static field is bad but fast.**
-         */
-        ProjectUnderTestArtifactsCollector.projectUnderTestOutputDirectory = output
-
         ProjectUnderTestArtifactsCollector.log("Selected model: $model")
 
         ProjectUnderTestArtifactsCollector.log("Test generation requested for $projectPath")
-        println("Test generation requested for '$projectPath'")
+//        println("Test generation requested for '$projectPath'")
 
         ProjectUnderTestArtifactsCollector.log("classPath: '$classPath'")
 
@@ -116,9 +119,9 @@ class TestSparkStarter : ApplicationStarter {
                 "            '''")
 
         ApplicationManager.getApplication().invokeAndWait {
-            println("Detected project: $project")
+//            println("Detected project: $project")
             // Continue when the project is indexed
-            println("Indexing project...")
+//            println("Indexing project...")
 
             ProjectUnderTestArtifactsCollector.log("Detected project: $project")
             ProjectUnderTestArtifactsCollector.log("Indexing project...")
@@ -129,7 +132,7 @@ class TestSparkStarter : ApplicationStarter {
                         // open target file
                         val cutSourceVirtualFile =
                             LocalFileSystem.getInstance().findFileByPath(cutSourceFilePath.toString()) ?: run {
-                                println("Couldn't open file $cutSourceFilePath")
+//                                println("Couldn't open file $cutSourceFilePath")
                                 ProjectUnderTestArtifactsCollector.log("Couldn't open file $cutSourceFilePath")
                                 exitProcess(1)
                             }
@@ -137,17 +140,18 @@ class TestSparkStarter : ApplicationStarter {
                         // get target PsiClass
                         val psiFile = PsiManager.getInstance(project).findFile(cutSourceVirtualFile) as PsiJavaFile
                         val targetPsiClass = detectPsiClass(psiFile.classes, classUnderTestName) ?: run {
-                            println("Couldn't find $classUnderTestName in $cutSourceFilePath")
+//                            println("Couldn't find $classUnderTestName in $cutSourceFilePath")
                             ProjectUnderTestArtifactsCollector.log("Couldn't find $classUnderTestName in $cutSourceFilePath")
                             exitProcess(1)
                         }
 
                         ProjectUnderTestArtifactsCollector.log(
                             "PsiClass '${targetPsiClass.qualifiedName}' is detected! Start the test generation process.")
-                        println("PsiClass ${targetPsiClass.qualifiedName} is detected! Start the test generation process.")
+//                        println("PsiClass ${targetPsiClass.qualifiedName} is detected! Start the test generation process.")
 
                         // Get project SDK
                         val projectSDKPath = getProjectSdkPath(project)
+                        ProjectUnderTestArtifactsCollector.log("projectSDKPath: '${projectSDKPath}'")
                         // update settings
                         val settingsState = project.getService(LLMSettingsService::class.java).state
 
@@ -177,8 +181,8 @@ class TestSparkStarter : ApplicationStarter {
                         val packageFilepath = classUnderTestName.split(".").dropLast(1).joinToString("/")
                         val compilationOutputDirectory = File("$output/$packageFilepath").normalize().path.toString()
 
-                        println("==============================\npackageFilepath: $packageFilepath")
-                        println("==============================\ncompilationOutputDirectory: ${compilationOutputDirectory}\n==============================")
+//                        println("==============================\npackageFilepath: $packageFilepath")
+//                        println("==============================\ncompilationOutputDirectory: ${compilationOutputDirectory}\n==============================")
 
                         ProjectUnderTestArtifactsCollector.log(
                             "==============================\npackageFilepath: $packageFilepath")
@@ -203,7 +207,7 @@ class TestSparkStarter : ApplicationStarter {
                             resultPath = output,
                             testResultName = "HeadlessGeneratedTests",
                         )
-                        println("[TestSpark Starter] Indexing is done")
+//                        println("[TestSpark Starter] Indexing is done")
                         ProjectUnderTestArtifactsCollector.log("[TestSpark Starter] Indexing is done")
 
                         // get package name
@@ -222,7 +226,7 @@ class TestSparkStarter : ApplicationStarter {
                                 projectSDKPath = projectSDKPath,
                             )
 
-                        println("[TestSpark Starter] Starting the test generation process")
+//                        println("[TestSpark Starter] Starting the test generation process")
                         ProjectUnderTestArtifactsCollector.log("[TestSpark Starter] Starting the test generation process")
                         // Start test generation
                         val indicator = HeadlessProgressIndicator()
@@ -238,8 +242,10 @@ class TestSparkStarter : ApplicationStarter {
 
                         // Check test Generation Output
 
-                        if (/*uiContext != null && */runCoverage) {
-                            println("[TestSpark Starter] Test generation completed successfully")
+                        ProjectUnderTestArtifactsCollector.log("uiContext: $uiContext")
+
+                        if (uiContext != null && runCoverage) {
+//                            println("[TestSpark Starter] Test generation completed successfully")
                             ProjectUnderTestArtifactsCollector.log("[TestSpark Starter] Test generation completed successfully")
                             // Run test file
                             runTestsWithCoverageCollection(
@@ -251,17 +257,17 @@ class TestSparkStarter : ApplicationStarter {
                                 projectSDKPath,
                             )
                         } else {
-                            println("[TestSpark Starter] Test generation failed")
+//                            println("[TestSpark Starter] Test generation failed")
                             ProjectUnderTestArtifactsCollector.log("[TestSpark Starter] Test generation failed")
                         }
 
                         ProjectManager.getInstance().closeAndDispose(project)
 
-                        println("[TestSpark Starter] Exiting the headless mode")
+//                        println("[TestSpark Starter] Exiting the headless mode")
                         ProjectUnderTestArtifactsCollector.log("[TestSpark Starter] Exiting the headless mode")
                         exitProcess(0)
                     } catch (e: Throwable) {
-                        println("[TestSpark Starter] Exiting the headless mode with an exception")
+//                        println("[TestSpark Starter] Exiting the headless mode with an exception")
                         ProjectUnderTestArtifactsCollector.log("[TestSpark Starter] Exiting the headless mode with an exception")
 
                         ProjectManager.getInstance().closeAndDispose(project)
@@ -282,7 +288,7 @@ class TestSparkStarter : ApplicationStarter {
     private fun getProjectSdkPath(project: Project): Path {
         return when (val projectSdk = ProjectRootManager.getInstance(project).projectSdk) {
             null -> {
-                println("Did not resolve the project SDK, using default SDK")
+//                println("Did not resolve the project SDK, using default SDK")
                 ProjectUnderTestArtifactsCollector.log("Did not resolve the project SDK, using default SDK")
                 Paths.get(System.getProperty("java.home"))
             }
@@ -301,28 +307,34 @@ class TestSparkStarter : ApplicationStarter {
     ) {
         val targetDirectory = "$out${File.separator}${packageList.joinToString(File.separator)}"
 
-        println("Run tests in $targetDirectory")
-        ProjectUnderTestArtifactsCollector.log("Run tests in $targetDirectory")
+//        println("Run tests in $targetDirectory")
+        ProjectUnderTestArtifactsCollector.log("Coverage: run tests in $targetDirectory")
 
         File(targetDirectory).walk().forEach {
             if (it.name.endsWith(".class")) {
-                println("Running test ${it.name}")
+//                println("Running test ${it.name}")
                 ProjectUnderTestArtifactsCollector.log("Running test ${it.name}")
 
                 var testcaseName = it.nameWithoutExtension.removePrefix("Generated")
                 testcaseName = testcaseName[0].lowercaseChar() + testcaseName.substring(1)
                 // The current test is compiled and is ready to run jacoco
-                val testExecutionError = TestProcessor(project, projectSDKPath).createXmlFromJacoco(
-                    it.nameWithoutExtension,
-                    "$targetDirectory${File.separator}jacoco-${it.nameWithoutExtension}",
-                    testcaseName,
-                    classPath,
-                    packageList.joinToString("."),
-                    out,
-                    projectContext,
-                )
-                // Saving exception (if exists) thrown during the test execution
-                saveException(testcaseName, targetDirectory, testExecutionError)
+
+                try {
+                    val testExecutionError = TestProcessor(project, projectSDKPath).createXmlFromJacoco(
+                        it.nameWithoutExtension,
+                        "$targetDirectory${File.separator}jacoco-${it.nameWithoutExtension}",
+                        testcaseName,
+                        classPath,
+                        packageList.joinToString("."),
+                        out,
+                        projectContext,
+                    )
+                    // Saving exception (if exists) thrown during the test execution
+                    saveException(testcaseName, targetDirectory, testExecutionError)
+                }
+                catch (err: Exception) {
+                    ProjectUnderTestArtifactsCollector.log("Exception when running test ${it.name}: ${err.message}\n${err.stackTraceToString()}")
+                }
             }
         }
     }
