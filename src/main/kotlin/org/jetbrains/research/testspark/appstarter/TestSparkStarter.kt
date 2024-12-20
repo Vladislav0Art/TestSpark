@@ -126,7 +126,7 @@ class TestSparkStarter : ApplicationStarter {
             ProjectUnderTestArtifactsCollector.log("Detected project: $project")
             ProjectUnderTestArtifactsCollector.log("Indexing project...")
 
-            project.let {
+            project.let { it ->
                 DumbService.getInstance(it).runWhenSmart {
                     try {
                         // open target file
@@ -150,7 +150,29 @@ class TestSparkStarter : ApplicationStarter {
 //                        println("PsiClass ${targetPsiClass.qualifiedName} is detected! Start the test generation process.")
 
                         // Get project SDK
-                        val projectSDKPath = getProjectSdkPath(project)
+                        // TODO: mockito-5.0.0 requires Java-11 or higher; projects often have /home/ubuntu/.jdks/corretto-1.8.0_402
+                        val projectSDKPath = getProjectSdkPath(project).let { sdk ->
+                            ProjectUnderTestArtifactsCollector.log("Initial projectSDKPath: '${sdk}'")
+                            ProjectUnderTestArtifactsCollector.log("Checking whether it is Java-8...")
+
+                            val java8Sdks = listOf(
+                                "/home/ubuntu/.jdks/corretto-1.8.0_402",
+                                "/home/ubuntu/.gradle/jdks/temurin-8-amd64-linux/jdk8u402-b06"
+                            )
+
+                            val resultSdk = if (java8Sdks.any { path -> sdk.toAbsolutePath().startsWith(path) }) {
+                                ProjectUnderTestArtifactsCollector.log(
+                                    "Found projectSDKPath '${sdk}' corresponds to Java-8. Switching to Java-11 (corretto-11.0.22)...")
+
+                                Paths.get("/home/ubuntu/.jdks/corretto-11.0.22").toAbsolutePath()
+                            }
+                            else {
+                                sdk
+                            }
+
+                            resultSdk
+                        }
+
                         ProjectUnderTestArtifactsCollector.log("projectSDKPath: '${projectSDKPath}'")
                         // update settings
                         val settingsState = project.getService(LLMSettingsService::class.java).state
