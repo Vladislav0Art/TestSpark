@@ -120,13 +120,18 @@ class JavaPsiClassWrapper(private val psiClass: PsiClass) : PsiClassWrapper {
             fullText = fullText.removePrefix(it.text)
         }
 
-        val declaration = fullText.split("\n").firstOrNull { it.contains(wrapper.name) }
-            ?: fullText.split("\n").firstOrNull()
+        var declaration = fullText.split("\n").firstOrNull { it.contains(wrapper.name) }?.trim()
+            ?: fullText.split("\n").firstOrNull()?.trim()
             ?: throw IllegalStateException("""
 Unable to extract declaration of the PSI class ${wrapper.name}.
 The full definition:
 ${psiClass.text}
             """.trimIndent())
+
+        // when '{' is written on the next line
+        if (!declaration.endsWith("{")) {
+            declaration = "$declaration {"
+        }
 
         ProjectUnderTestArtifactsCollector.log("Constructed declaration: `$declaration`")
         return declaration
