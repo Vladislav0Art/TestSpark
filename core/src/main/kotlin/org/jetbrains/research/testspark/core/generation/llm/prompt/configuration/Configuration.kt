@@ -1,6 +1,8 @@
 package org.jetbrains.research.testspark.core.generation.llm.prompt.configuration
 
 import org.jetbrains.research.testspark.core.data.ClassType
+import org.jetbrains.research.testspark.core.utils.importPattern
+import org.jetbrains.research.testspark.core.utils.packagePattern
 
 /**
  * Represents the context for generating prompts for generating unit tests.
@@ -43,7 +45,18 @@ data class ClassRepresentation(
     val methodsDeclaration: String,
     val allMethods: List<MethodRepresentation>,
     val classType: ClassType,
-)
+) {
+    val imports: Set<String>
+        get() {
+            val imports = importPattern.findAll(fullText, 0)
+                .map { it.groupValues[0] }
+                .toSet()
+            return imports
+        }
+
+    val packageDefinition: String?
+        get() = packagePattern.find(fullText)?.groupValues?.get(0)
+}
 
 /**
  * Represents a method in a class.

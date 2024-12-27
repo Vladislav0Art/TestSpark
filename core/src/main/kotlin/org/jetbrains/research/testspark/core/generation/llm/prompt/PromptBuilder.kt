@@ -64,7 +64,11 @@ internal class PromptBuilder(private var prompt: String) {
                 (PromptKeyword.CODE to cut.fullText)
             }
             else if (hasKeyword(PromptKeyword.METHOD_DECLARATIONS, prompt)) {
-                (PromptKeyword.METHOD_DECLARATIONS to cut.methodsDeclaration)
+                val code = cut.packageDefinition +
+                    cut.imports.joinToString("\n") + "\n\n" +
+                    cut.methodsDeclaration
+
+                (PromptKeyword.METHOD_DECLARATIONS to code)
             }
             else {
                 throw IllegalStateException("The prompt must contain ${PromptKeyword.CODE.text} or ${PromptKeyword.METHOD_DECLARATIONS.text}")
