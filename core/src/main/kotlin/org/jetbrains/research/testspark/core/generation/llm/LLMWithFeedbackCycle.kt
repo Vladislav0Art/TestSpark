@@ -209,6 +209,7 @@ class LLMWithFeedbackCycle(
 //                }
 //                this.copy(imports = extendedImports)
 //            }
+            generatedTestSuite = response.testSuite
 
             // Process stopped checking
             if (indicator.isCanceled()) {
