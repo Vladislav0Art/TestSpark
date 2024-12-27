@@ -64,7 +64,7 @@ internal class PromptBuilder(private var prompt: String) {
                 (PromptKeyword.CODE to cut.fullText)
             }
             else if (hasKeyword(PromptKeyword.METHOD_DECLARATIONS, prompt)) {
-                val code = cut.packageDefinition +
+                val code = cut.packageDefinition + "\n" +
                     cut.imports.joinToString("\n") + "\n\n" +
                     cut.methodsDeclaration
 
