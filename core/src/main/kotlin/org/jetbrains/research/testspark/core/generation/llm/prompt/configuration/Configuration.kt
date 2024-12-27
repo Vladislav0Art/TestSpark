@@ -54,8 +54,8 @@ data class ClassRepresentation(
             return imports
         }
 
-    val packageDefinition: String?
-        get() = packagePattern.find(fullText)?.groupValues?.get(0)
+    val packageDefinition: String
+        get() = packagePattern.find(fullText)?.groupValues?.get(0) ?: ""
 }
 
 /**
