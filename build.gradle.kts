@@ -17,7 +17,7 @@ val spacePassword =
     System.getProperty("space.pass")?.toString() ?: project.properties["spacePassword"]?.toString() ?: ""
 
 // the test generation module for interacting with Grazie (used when the space credentials are provided)
-val grazieTestGenerationVersion = "1.0.9"
+val grazieTestGenerationVersion = "1.0.10"
 
 plugins {
     // Java support
