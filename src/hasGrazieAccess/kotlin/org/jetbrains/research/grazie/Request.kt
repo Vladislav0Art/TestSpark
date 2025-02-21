@@ -17,7 +17,7 @@ class Request : GrazieRequest {
         val generation = TestGeneration(token)
         var errorMessage = ""
         runBlocking {
-            generation.generate(messages, profile).catch {
+            generation.generate(messages, profile, temperature = 0.8).catch {
                 errorMessage = it.message.toString()
             }.collect {
                 testsAssembler.consume(it)
